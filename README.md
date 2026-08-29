@@ -373,6 +373,9 @@ next to the stall, cache-hit and flash-per-token columns that make a tok/s figur
 
 ## Quickstart
 
+Kotoba/Murakumo maintainers: see [KOTOBA.md](KOTOBA.md) for the split
+Metal/expert-stream placement seam and the 16 GiB qualification boundary.
+
 ### Host (Linux, macOS, Windows)
 
 ```bash

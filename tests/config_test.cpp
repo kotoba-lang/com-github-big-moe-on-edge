@@ -78,6 +78,11 @@ int main() {
         c.n_expert_used = -1;
         expect_fail("n_expert_used must be >= 0", c);
     }
+    {
+        RunConfig c = ok_base();
+        c.gpu_layers = -1;
+        expect_fail("gpu_layers must be >= 0", c);
+    }
 
     // Streaming rules.
     {

@@ -332,6 +332,9 @@ struct RunConfig {
     int n_predict = 128;
     int n_threads = 4;
     int n_ctx = 2048;
+    // GPU placement applies only to non-expert tensors. Streamed experts stay
+    // CPU-buffer tensors so their backing slots can be rebound after NVMe reads.
+    int gpu_layers = 0;
 
     // Largest batch computed in one graph, i.e. the prefill chunk size. 0 (the default) means
     // "follow n_ctx", which prefills any fitting prompt in a single pass.

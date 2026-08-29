@@ -11,6 +11,7 @@ SessionConfig session_config_from(const RunConfig & cfg) {
     sc.model_path = cfg.model_path;
     sc.n_threads = cfg.n_threads;
     sc.n_ctx = cfg.n_ctx;
+    sc.gpu_layers = cfg.gpu_layers;
     sc.n_batch = cfg.n_ctx;     // one-batch prefill for any prompt that fits the context
     sc.n_ubatch = cfg.n_ubatch; // 0 = follow n_batch; smaller trades prefill speed for memory
     sc.chatml = cfg.chatml;

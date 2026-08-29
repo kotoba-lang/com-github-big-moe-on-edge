@@ -36,6 +36,7 @@ struct SessionConfig {
     std::string model_path;
     int n_threads = 4;
     int n_ctx = 2048;
+    int gpu_layers = 0; // non-expert GPU layers; streamed experts remain CPU-backed
     int n_batch = 512; // prefill chunk capacity; longer prompts are prefilled in n_batch slices
     // Widest graph actually computed at once. 0 = follow n_batch. Sizing this down trades prefill
     // throughput for resident compute buffers, which on this engine compete with the expert cache.

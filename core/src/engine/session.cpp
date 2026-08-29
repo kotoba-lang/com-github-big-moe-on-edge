@@ -606,11 +606,20 @@ std::unique_ptr<Session> Session::open(const SessionConfig & cfg,
     auto gguf = [&]() -> const GgufModelInfo & { return meta().info; };
 
     // Load with the layout the streamer requires: file-backed mmap, no repack (a repacked
-    // q4_K buffer would break the rebind), experts on CPU.
+    // q4_K buffer would break the rebind). Dense/non-expert tensors may execute on GPU,
+    // while streamed experts stay CPU-buffer tensors because their ->data is rebound.
     llama_model_params mparams = llama_model_default_params();
     mparams.load_mode = LLAMA_LOAD_MODE_MMAP;
     mparams.use_extra_bufts = false;
-    mparams.n_gpu_layers = 0;
+    mparams.n_gpu_layers = cfg.gpu_layers;
+    llama_model_tensor_buft_override streamed_expert_overrides[3] = {
+        llm_ffn_exps_cpu_override(),
+        { "^per_layer_token_embd\\\\.weight$", ggml_backend_cpu_buffer_type() },
+        {nullptr, nullptr},
+    };
+    if (cfg.moe.enabled && cfg.gpu_layers != 0) {
+        mparams.tensor_buft_overrides = streamed_expert_overrides;
+    }
     // The nextn/MTP block is skipped at load unless asked for: llama.cpp marks its tensors
     // TENSOR_SKIP by default, and only --mtp builds a graph over them. n_layer_nextn comes from
     // the gguf metadata either way, so the "this model has no trained head" check below is
