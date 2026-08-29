@@ -13,6 +13,7 @@
 
 #include "llama.h"
 #include "ggml.h"
+#include "ggml-backend.h"
 
 // llama.cpp's `common` layer (NOT the stable public API): chat-template rendering and
 // reasoning parsing. See the note in the root CMakeLists / docs/seam.md.
@@ -614,7 +615,7 @@ std::unique_ptr<Session> Session::open(const SessionConfig & cfg,
     mparams.n_gpu_layers = cfg.gpu_layers;
     llama_model_tensor_buft_override streamed_expert_overrides[3] = {
         llm_ffn_exps_cpu_override(),
-        { "^per_layer_token_embd\\\\.weight$", ggml_backend_cpu_buffer_type() },
+        {"^per_layer_token_embd\\\\.weight$", ggml_backend_cpu_buffer_type()},
         {nullptr, nullptr},
     };
     if (cfg.moe.enabled && cfg.gpu_layers != 0) {
@@ -882,6 +883,12 @@ std::unique_ptr<Session> Session::open(const SessionConfig & cfg,
             for (const auto & kv : im.hook->captured_weights()) {
                 const std::string & name = kv.first;
                 if (expert_names.count(name)) continue;
+                // GPU weights must keep the buffer and data pointer installed by llama.cpp.
+                // DenseWeights::Anonymous and RowStream both rebind tensor->data to CPU virtual
+                // memory; doing that after Metal placement leaves the GPU graph referring to an
+                // unrelated allocation and silently corrupts logits. Unified memory does not make
+                // a Metal buffer a host buffer in ggml's ownership model.
+                if (!kv.second->buffer || !ggml_backend_buffer_is_host(kv.second->buffer)) continue;
                 auto off = offs.off_by_name.find(name);
                 auto sz = offs.size_by_name.find(name);
                 if (off == offs.off_by_name.end() || sz == offs.size_by_name.end()) continue; // not a file tensor
