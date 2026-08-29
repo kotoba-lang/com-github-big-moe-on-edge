@@ -77,6 +77,11 @@ Semantic Versioning.
   Listed under the app's Experimental group.
 
 ### Changed
+- Split Metal placement now excludes GPU-backed tensors from anonymous dense
+  residency and row streaming. Those policies rebind `tensor->data` to CPU
+  virtual memory, which previously left the Metal graph attached to an unrelated
+  buffer and could silently corrupt logits when `--gpu-layers` and
+  `--dense-weights anon` or `--row-stream` were combined.
 - The CSV summary trailer gains `row_table_MiB`, `row_resident_MiB`, `row_rows`, `row_reads`,
   `row_read_MiB`, `row_evictions` and `row_io_errors`, and a `moe-rows:` end-of-run line appears
   when a table qualified. All are absent from the per-token rows, which the policy does not touch.
