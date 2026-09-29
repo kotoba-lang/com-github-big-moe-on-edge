@@ -2,7 +2,7 @@
 
 Read this before making changes. It captures the invariants that keep this project clean.
 It follows the [AGENTS.md](https://agents.md) convention, so any coding agent picks it up;
-`CLAUDE.md` just points here.
+`AGENTS.md` just points here.
 
 ## What this is
 
